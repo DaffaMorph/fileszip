@@ -1,59 +1,87 @@
-# NexusQuiz 3D • Aplikasi Kuis Interaktif Kelas Atas
+# 📦 File Zipper & Compressor (Python Flask & CLI)
 
-Aplikasi web kuis interaktif kelas atas (*high-end critical thinking & simulation platform*) yang dirancang dengan standar arsitektur **Senior Full-Stack Engineer & Lead UI/UX Designer**.
-
----
-
-## 🌟 Fitur Utama
-
-1. **Metode Input Ganda**:
-   * **Form Builder Manual**: Dialog interaktif untuk merancang soal HOTS lengkap dengan skenario kasus, pemilihan model 3D, feedback miskonsepsi per opsi, dan konsep inti pembahasan.
-   * **Parser Otomatis Word (.docx)**: Ekstraksi cerdas dokumen Microsoft Word menggunakan tokenizer berbasis token hierarkis (`[SOAL]`, `[TAKSONOMI]`, `[MODEL_3D]`, `Feedback:`, dll.) via `mammoth.js`.
-
-2. **Kualitas Konten Anti AI-Slop (HOTS)**:
-   * Setiap soal memiliki skenario dunia nyata bermakna (*real-world case study*).
-   * Taksonomi Bloom tingkat tinggi (*Analyze, Evaluate, Create*).
-   * **Diagnostic Feedback**: Setiap opsi salah memiliki bedah miskonsepsi logis spesifik, menolak format tebakan hafalan biasa.
-
-3. **Elemen Interaktif 3D (Three.js)**:
-   * Rendering WebGL performa tinggi (60-120 FPS) dengan pencahayaan sinematik (*Directional + Ambient + Rim Light*), partikel latar belakang, dan bayangan lembut.
-   * Model prosedural 3D dinamis yang berganti sesuai konteks soal:
-     * **Topografi Vaskular Jantung & RCA** (Kardiologi).
-     * **Airfoil Aerodinamika Transonik & Garis Alir** (Teknik Dirgantara).
-     * **Struktur Heliks Ganda DNA & Residu Pengikat** (Biologi Molekuler).
-   * Kontrol orbit penuh: drag rotasi, zoom in/out, reset kamera, dan toggle auto-rotate.
-
-4. **Halaman Pembahasan & Analisis Kinerja**:
-   * **Donut Chart Interaktif**: Rasio respons Benar (Emerald), Salah (Rose), dan Dilewati (Amber) dengan persentase akurasi di tengah cincin.
-   * **Statistik Skor & HOTS Mastery**: Akumulasi skor (+100 poin per HOTS), durasi rata-rata per soal, dan grafik batang penguasaan taksonomi.
-   * **Accordion Bedah Soal Mendalam**: Menampilkan konsep inti, langkah pembuktian rasional, serta dekonstruksi opsi pengecoh.
-   * Filter pembahasan: *Semua*, *Hanya yang Salah*, *Hanya yang Benar*.
-
-5. **Audio Haptics & UI/UX Mewah**:
-   * Synthesizer audio berbasis **Web Audio API** tanpa perlu file MP3 eksternal (suara klik halus, melodi benar 3-nada, umpan balik salah, dan kuis selesai).
-   * Palet warna Dark-Mode Obsidian (`#060911`) dengan efek *frosted glass* (*backdrop-filter blur*), tipografi **Plus Jakarta Sans**, dan **JetBrains Mono**.
+Aplikasi sederhana untuk mengunggah satu atau banyak berkas, mengompresnya secara otomatis menjadi format `.zip`, dan langsung mengunduh hasilnya. Dilengkapi antarmuka Web UI modern (drag-and-drop) dan juga versi antarmuka baris perintah (CLI).
 
 ---
 
-## 🚀 Cara Menjalankan
+## ✨ Fitur Utama
 
-Aplikasi ini bersifat **zero-dependency runtime** (dapat langsung dibuka di browser tanpa perlu install Node/Python terlebih dahulu):
-
-1. **Langsung via Browser**:
-   * Cukup klik dua kali pada file `index.html` atau klik kanan > **Open with Google Chrome / Microsoft Edge**.
-2. **Via Visual Studio Code**:
-   * Buka folder ini di VS Code: `code .`
-   * Buka dengan ekstensi **Live Server** (klik *Go Live* di pojok kanan bawah), atau gunakan VS Code Simple Browser.
+1. **Multi-File Upload**: Mendukung upload satu atau beberapa berkas sekaligus via Web UI (drag & drop) atau CLI.
+2. **Kompresi Otomatis**: Berkas dikompres menggunakan algoritma `ZIP_DEFLATED` standar.
+3. **In-Memory Streaming (Web)**: Menggunakan buffer memori (`io.BytesIO`), sehingga tidak menumpuk file sampah di server dan sangat cepat.
+4. **Unduhan Otomatis (Direct Download)**: Berkas `.zip` langsung diunduh otomatis oleh browser setelah proses kompresi selesai, lengkap dengan link unduh ulang jika diperlukan.
+5. **Penamaan Otomatis**:
+   - Jika hanya 1 berkas: `<nama_file_asli>_<timestamp>.zip` (contoh: `laporan_20261027_193000.zip`).
+   - Jika banyak berkas: `archive_<timestamp>.zip` (contoh: `archive_20261027_193000.zip`).
+6. **Penanganan Error Lengkap**:
+   - Validasi jika tidak ada berkas yang dipilih.
+   - Pengecekan file corrupt / unreadable stream.
+   - Penanganan duplikasi nama file di dalam zip yang sama.
+   - Sanitasi nama file dengan `secure_filename` (mencegah directory traversal).
+   - Batasan ukuran upload (default: 100 MB).
 
 ---
 
 ## 📁 Struktur Berkas
 
 ```
-.
-├── index.html              # Antarmuka utama aplikasi (Three.js + Tailwind + Mammoth + Logic)
-├── sample-questions.json   # Basis data soal default berkualitas HOTS
-├── template_format.txt     # Dokumentasi format token impor Word (.docx)
-├── package.json            # Konfigurasi dependensi project
-└── README.md               # Dokumentasi lengkap arsitektur
+file-zipper-app/
+├── app.py                 # Backend server Flask (Web UI)
+├── zipper_cli.py          # Script CLI alternatif untuk terminal
+├── requirements.txt       # Dependensi Python (Flask)
+├── templates/
+│   └── index.html         # Antarmuka web responsif & modern
+└── README.md              # Dokumentasi & panduan
+```
+
+---
+
+## 🚀 Panduan Menjalankan Program
+
+### 1. Prasyarat
+Pastikan Python (versi 3.8 ke atas) telah terpasang di komputer Anda:
+```bash
+python --version
+```
+
+### 2. Masuk ke Direktori Program
+Buka Terminal / Command Prompt / PowerShell, lalu masuk ke folder project:
+```bash
+cd file-zipper-app
+```
+
+### 3. Pasang Dependensi
+Install paket yang diperlukan (`Flask`):
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+### Cara 1: Menjalankan Versi Web UI (Direkomendasikan)
+
+1. Jalankan server:
+   ```bash
+   python app.py
+   ```
+2. Buka browser Anda dan akses alamat:
+   ```
+   http://127.0.0.1:5000
+   ```
+3. Tarik & lepaskan (drag and drop) berkas Anda atau klik untuk memilih file.
+4. Klik tombol **"Kompres ke .ZIP & Unduh"**.
+5. File `.zip` akan otomatis terunduh ke komputer Anda!
+
+---
+
+### Cara 2: Menjalankan Versi CLI (Baris Perintah)
+
+Jika Anda ingin mengompresi langsung dari terminal tanpa membuka browser:
+
+```bash
+# Mengompres satu atau beberapa berkas (nama otomatis dengan timestamp)
+python zipper_cli.py dokumen.pdf gambar.png catatan.txt
+
+# Menentukan nama output file zip sendiri:
+python zipper_cli.py --output berkas_saya.zip file1.docx file2.xlsx
 ```
