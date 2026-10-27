@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexusQuiz 3D • Kuis Interaktif Kelas Atas</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              400: '#2dd4bf',
+              500: '#14b8a6',
+              600: '#0d9488',
+              glow: '#06b6d4',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons & Three.js & Mammoth.js for Word (.docx) Parsing -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+  <style>
+    body {
+      background-color: #060911;
+      color: #f1f5f9;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    }
+    .glass-card-interactive {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-card-interactive:hover {
+      background: rgba(51, 65, 85, 0.6);
+      border-color: rgba(45, 212, 191, 0.4);
+      transform: translateY(-2px);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.35);
+    }
+    .glow-emerald {
+      box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.35);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+    .badge-pulse {
+      animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.05); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-teal-500 selection:text-black">
+
+  <!-- Ambient background glow elements -->
+  <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-600/10 blur-[130px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-teal-600/10 blur-[130px] pointer-events-none -z-10"></div>
+
+  <!-- NAVIGATION HEADER -->
+  <header class="sticky top-0 z-40 border-b border-slate-800/80 bg-[#060911]/80 backdrop-blur-md px-4 lg:px-8 py-3.5 transition-all">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-teal-400 to-emerald-400 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <i data-lucide="sparkles" class="w-5 h-5 text-slate-950"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">NexusQuiz 3D</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/30 font-mono">PRO HOTS</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Platform Kuis Berpikir Kritis & Simulasi 3D</p>
+        </div>
+      </div>
+
+      <!-- Header actions & Stats -->
+      <div class="flex items-center gap-3">
+        <button id="btn-open-form-builder" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-teal-400"></i>
+          <span class="hidden md:inline">Form Builder</span>
+        </button>
+
+        <button id="btn-open-docx-importer" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-800/80 transition">
+          <i data-lucide="file-up" class="w-4 h-4"></i>
+          <span class="hidden md:inline">Impor Word (.docx)</span>
+        </button>
+
+        <div id="quiz-header-timer" class="hidden items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-mono text-xs font-bold shadow-inner">
+          <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
+          <span id="timer-display">02:00</span>
+        </div>
+
+        <button id="btn-toggle-sound" class="p-2 rounded-lg bg-slate-800/70 text-slate-400 hover:text-slate-200 border border-slate-700/60 transition" title="Toggle Suara">
+          <i data-lucide="volume-2" id="sound-icon" class="w-4 h-4 text-teal-400"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-7xl mx-auto w-full p-4 lg:p-8 flex flex-col justify-center">
+
+    <!-- VIEW 1: QUIZ PLAYGROUND -->
+    <div id="view-quiz" class="flex flex-col gap-6 w-full">
+      
+      <!-- Top Meta Info & Progress Bar -->
+      <div class="glass-panel rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <span id="question-badge-category" class="text-xs font-medium px-3 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+            Kardiologi & Kedokteran
+          </span>
+          <span id="question-badge-bloom" class="text-xs font-bold px-3 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20 uppercase font-mono">
+            EVALUASI • HOTS
+          </span>
+          <span id="question-badge-difficulty" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-300 border border-rose-500/20 capitalize">
+            Hard
+          </span>
+        </div>
+
+        <!-- Progress Pills -->
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-slate-400 font-medium">Soal <span id="current-q-index" class="text-white font-bold">1</span> dari <span id="total-q-count" class="text-slate-300">3</span></span>
+          <div class="w-28 sm:w-40 h-2 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700/50">
+            <div id="quiz-progress-bar" class="h-full bg-gradient-to-r from-cyan-500 to-teal-400 rounded-full transition-all duration-300" style="width: 33%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two-Column Layout (Interactive 3D Stage on Left, Question & Options on Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        
+        <!-- LEFT: THREE.JS 3D INTERACTIVE STAGE -->
+        <div class="lg:col-span-6 flex flex-col gap-3">
+          <div class="relative w-full h-[360px] sm:h-[440px] rounded-2xl overflow-hidden glass-panel border border-slate-800 flex flex-col">
+            
+            <!-- 3D Viewer Top Badge & Tool controls -->
+            <div class="absolute top-3 left-3 z-10 flex items-center gap-2">
+              <span class="px-2.5 py-1 text-[11px] font-mono font-semibold rounded-lg bg-slate-900/90 text-cyan-300 border border-cyan-500/30 backdrop-blur-md flex items-center gap-1.5 shadow-md">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 badge-pulse"></span>
+                <span id="label-3d-model">Model 3D Interaktif</span>
+              </span>
+            </div>
+
+            <div class="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+              <button id="btn-reset-camera" class="p-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700 backdrop-blur text-xs flex items-center gap-1 transition" title="Reset Sudut Pandang">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              </button>
+              <button id="btn-toggle-autorotate" class="p-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700 backdrop-blur text-xs flex items-center gap-1 transition" title="Auto Rotasi On/Off">
+                <i data-lucide="play" id="icon-autorotate" class="w-3.5 h-3.5 text-cyan-400"></i>
+              </button>
+            </div>
+
+            <!-- Three.js Canvas Container -->
+            <div id="three-container" class="w-full flex-1 cursor-grab active:cursor-grabbing"></div>
+
+            <!-- Bottom Hint for 3D interactions -->
+            <div class="p-3 bg-slate-950/70 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5 text-cyan-400"></i>
+                <span id="instruction-3d-text">Drag untuk memutar • Scroll untuk zoom • Klik anotasi</span>
+              </span>
+              <span class="font-mono text-[10px] text-slate-500 hidden sm:inline">Three.js WebGL Engine</span>
+            </div>
+          </div>
+
+          <!-- Scenario Card (Anti-Slop Real-World Meaningful Context) -->
+          <div class="glass-panel rounded-2xl p-5 border border-slate-800/80">
+            <div class="flex items-center gap-2 mb-2 text-cyan-400 font-semibold text-xs tracking-wider uppercase font-mono">
+              <i data-lucide="microscope" class="w-4 h-4"></i>
+              <span>Konteks Studi Kasus Klinis / Teknis</span>
+            </div>
+            <p id="question-scenario-text" class="text-sm leading-relaxed text-slate-300 font-normal">
+              Memuat konteks studi kasus...
+            </p>
+          </div>
+        </div>
+
+        <!-- RIGHT: PROBLEM STATEMENT, OPTIONS & ACTIONS -->
+        <div class="lg:col-span-6 flex flex-col justify-between glass-panel rounded-2xl p-6 sm:p-7 border border-slate-800/80">
+          
+          <div>
+            <!-- Question Prompt -->
+            <div class="mb-6">
+              <span class="text-xs font-mono font-bold text-teal-400 mb-1.5 block tracking-wide">PERTANYAAN ANALITIS</span>
+              <h2 id="question-prompt-text" class="text-lg sm:text-xl font-bold text-white leading-snug">
+                Memuat pertanyaan kuis...
+              </h2>
+            </div>
+
+            <!-- Multiple Choice Options List -->
+            <div id="options-container" class="flex flex-col gap-3">
+              <!-- Rendered via JS -->
+            </div>
+
+            <!-- Real-time Diagnostic Feedback (shown after answer confirmation) -->
+            <div id="instant-feedback-box" class="hidden mt-4 p-4 rounded-xl border text-sm transition-all duration-300">
+              <div class="flex items-start gap-2.5">
+                <i id="feedback-icon" data-lucide="info" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                <div>
+                  <h4 id="feedback-title" class="font-bold mb-1"></h4>
+                  <p id="feedback-desc" class="text-xs sm:text-sm leading-relaxed text-slate-300"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Actions: Skip, Confirm, Next -->
+          <div class="pt-6 mt-6 border-t border-slate-800 flex items-center justify-between gap-3">
+            <button id="btn-skip-question" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition border border-transparent hover:border-slate-700">
+              Lewati Soal
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button id="btn-confirm-answer" disabled class="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 transition shadow-lg shadow-cyan-500/20 disabled:opacity-40 disabled:cursor-not-allowed">
+                Kunci Jawaban
+              </button>
+              <button id="btn-next-question" class="hidden px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 transition shadow-lg shadow-emerald-500/20 flex items-center gap-1.5">
+                <span>Selanjutnya</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- VIEW 2: PERFORMANCE ANALYTICS & REVIEW PAGE -->
+    <div id="view-result" class="hidden flex-col gap-8 w-full max-w-5xl mx-auto animate-fade-in">
+      
+      <!-- Performance Header Banner -->
+      <div class="glass-panel rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden">
+        <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/20 text-xs font-mono font-bold mb-3">
+          <i data-lucide="award" class="w-4 h-4 text-teal-400"></i>
+          <span>LAPORAN ANALISIS EVALUASI KOMPREHENSIF</span>
+        </div>
+        <h1 id="result-headline" class="text-2xl sm:text-4xl font-extrabold text-white mb-2">
+          Performa Kritis Sangat Mengesankan!
+        </h1>
+        <p id="result-subtext" class="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto">
+          Evaluasi mendalam pemahaman konsep berpikir kritis tingkat tinggi (HOTS) serta analisis miskonsepsi logis.
+        </p>
+      </div>
+
+      <!-- Analytics Core: Donut Chart on Left, Metric Cards on Right -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        <!-- LEFT: INTERACTIVE DONUT CHART (Benar, Salah, Dilewati) -->
+        <div class="md:col-span-5 glass-panel rounded-2xl p-6 flex flex-col items-center justify-center">
+          <h3 class="text-sm font-bold text-slate-300 mb-4 tracking-wide uppercase font-mono flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-cyan-400"></i>
+            Rasio Respons Kuis
+          </h3>
+
+          <!-- SVG Donut Chart Canvas -->
+          <div class="relative w-56 h-56 flex items-center justify-center my-2">
+            <svg id="donut-svg" class="w-full h-full -rotate-90 transform" viewBox="0 0 160 160">
+              <!-- SVG Rings injected via JS -->
+            </svg>
+            <div class="absolute flex flex-col items-center justify-center text-center pointer-events-none">
+              <span id="donut-center-pct" class="text-3xl font-black text-white font-mono">0%</span>
+              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">Akurasi</span>
+            </div>
+          </div>
+
+          <!-- Donut Legend -->
+          <div class="grid grid-cols-3 gap-2 w-full mt-4 pt-4 border-t border-slate-800 text-center">
+            <div class="flex flex-col items-center">
+              <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span>Benar</span>
+              </div>
+              <span id="stat-count-correct" class="text-lg font-bold text-emerald-400 font-mono mt-0.5">0</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                <span>Salah</span>
+              </div>
+              <span id="stat-count-wrong" class="text-lg font-bold text-rose-400 font-mono mt-0.5">0</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <span>Lewat</span>
+              </div>
+              <span id="stat-count-skipped" class="text-lg font-bold text-amber-400 font-mono mt-0.5">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: NUMERICAL STATS & HOTS MASTERY -->
+        <div class="md:col-span-7 flex flex-col gap-4 justify-between">
+          
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Score Card -->
+            <div class="glass-panel rounded-2xl p-5 border border-slate-800">
+              <div class="text-xs text-slate-400 flex items-center justify-between mb-2">
+                <span>Skor Akumulasi</span>
+                <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
+              </div>
+              <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono">
+                <span id="stat-total-score">0</span> <span class="text-xs text-slate-500 font-sans font-normal">/ <span id="stat-max-score">300</span></span>
+              </div>
+              <p class="text-[11px] text-teal-400 mt-1 font-medium">+100 per jawaban HOTS benar</p>
+            </div>
+
+            <!-- Average Response Time -->
+            <div class="glass-panel rounded-2xl p-5 border border-slate-800">
+              <div class="text-xs text-slate-400 flex items-center justify-between mb-2">
+                <span>Durasi Rata-rata</span>
+                <i data-lucide="timer" class="w-4 h-4 text-cyan-400"></i>
+              </div>
+              <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono">
+                <span id="stat-avg-time">18</span><span class="text-sm text-slate-500"> dtk</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">Kecepatan analitis optimal</p>
+            </div>
+          </div>
+
+          <!-- HOTS Competency Breakdown -->
+          <div class="glass-panel rounded-2xl p-5 border border-slate-800">
+            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 font-mono flex items-center gap-2">
+              <i data-lucide="cpu" class="w-4 h-4 text-teal-400"></i>
+              Distribusi Penguasaan HOTS (Bloom's Taxonomy)
+            </h4>
+            
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-slate-300">Evaluasi & Diagnosis Kasus (Evaluate)</span>
+                  <span id="stat-bar-evaluate-val" class="font-mono text-cyan-300 font-bold">100%</span>
+                </div>
+                <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div id="stat-bar-evaluate" class="h-full bg-cyan-400 rounded-full" style="width: 100%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-slate-300">Analisis Mekanisme & Kausalitas (Analyze)</span>
+                  <span id="stat-bar-analyze-val" class="font-mono text-teal-300 font-bold">100%</span>
+                </div>
+                <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div id="stat-bar-analyze" class="h-full bg-teal-400 rounded-full" style="width: 100%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap items-center gap-3">
+            <button id="btn-restart-quiz" class="flex-1 min-w-[160px] py-3 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 transition flex items-center justify-center gap-2 shadow-lg shadow-teal-500/20">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              <span>Coba Kuis Lagi</span>
+            </button>
+            <button onclick="window.print()" class="px-5 py-3 rounded-xl font-semibold text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-2">
+              <i data-lucide="printer" class="w-4 h-4"></i>
+              <span>Cetak Ringkasan</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- IN-DEPTH EXPLANATION ACCORDION (ANTI AI-SLOP DEEP BREAKDOWN) -->
+      <div class="glass-panel rounded-2xl p-6 sm:p-8 border border-slate-800">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
+          <div>
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <i data-lucide="book-open-check" class="w-5 h-5 text-teal-400"></i>
+              Pembahasan Mendalam & Bedah Pengecoh
+            </h3>
+            <p class="text-xs text-slate-400 mt-1">
+              Rasionalisasi bertingkat dan dekonstruksi kesalahan berpikir pada masing-masing opsi.
+            </p>
+          </div>
+
+          <!-- Filter buttons -->
+          <div class="flex items-center gap-1.5 p-1 bg-slate-900 rounded-xl border border-slate-800 text-xs">
+            <button class="filter-review-btn active px-3 py-1 rounded-lg bg-teal-500/20 text-teal-300 font-semibold" data-filter="all">Semua</button>
+            <button class="filter-review-btn px-3 py-1 rounded-lg text-slate-400 hover:text-slate-200" data-filter="wrong">Salah Saja</button>
+            <button class="filter-review-btn px-3 py-1 rounded-lg text-slate-400 hover:text-slate-200" data-filter="correct">Benar Saja</button>
+          </div>
+        </div>
+
+        <!-- Accordion Question List Container -->
+        <div id="review-accordion-list" class="flex flex-col gap-4">
+          <!-- Injected via JavaScript -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- MODAL 1: FORM BUILDER (MANUAL INPUT) -->
+  <div id="modal-form-builder" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-3xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto flex flex-col gap-6 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center">
+            <i data-lucide="sliders" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white">Form Builder Soal HOTS</h3>
+            <p class="text-xs text-slate-400">Tambahkan soal berbobot tinggi dengan simulasi objek 3D</p>
+          </div>
+        </div>
+        <button id="btn-close-form-builder" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-create-question" class="space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Kategori / Topik</label>
+            <input type="text" id="fb-category" required value="Sains & Teknologi" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-teal-400 transition" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Taksonomi Bloom (HOTS)</label>
+            <select id="fb-bloom" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-teal-400 transition">
+              <option value="analyze">Analyze (Menganalisis)</option>
+              <option value="evaluate" selected>Evaluate (Mengevaluasi)</option>
+              <option value="create">Create (Mencipta/Merancang)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Pilihan Model 3D</label>
+            <select id="fb-3d-model" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-teal-400 transition">
+              <option value="heart_coronary">Jantung & Vaskular Koroner</option>
+              <option value="airfoil_aerodynamics">Airfoil Aerodinamika Transonik</option>
+              <option value="dna_protein_complex">Heliks Ganda DNA & Protein</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">
+            Konteks Studi Kasus / Skenario Masalah (Anti-Slop: Wajib bermakna & spesifik)
+          </label>
+          <textarea id="fb-scenario" rows="3" required placeholder="Jelaskan parameter kasus dunia nyata..." class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-teal-400 transition"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Pertanyaan Utama (Problem Statement)</label>
+          <input type="text" id="fb-prompt" required placeholder="Berdasarkan pengamatan di atas, apa penyebab...?" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-teal-400 transition" />
+        </div>
+
+        <!-- 4 Multiple Choice Options with Misconception Feedback -->
+        <div class="space-y-3">
+          <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider font-mono">
+            Pilihan Jawaban & Feedback Miskonsepsi
+          </label>
+          
+          <!-- Option A -->
+          <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+            <div class="flex items-center gap-3">
+              <input type="radio" name="correct_opt" value="0" required class="accent-teal-400 w-4 h-4" />
+              <span class="text-xs font-bold text-teal-400">Pilihan (A)</span>
+              <input type="text" id="fb-opt-0-label" required placeholder="Teks pilihan A..." class="flex-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white" />
+            </div>
+            <input type="text" id="fb-opt-0-feedback" required placeholder="Feedback spesifik jika memilih A (kenapa salah / benar)..." class="w-full px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-300" />
+          </div>
+
+          <!-- Option B -->
+          <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+            <div class="flex items-center gap-3">
+              <input type="radio" name="correct_opt" value="1" checked class="accent-teal-400 w-4 h-4" />
+              <span class="text-xs font-bold text-teal-400">Pilihan (B) [Kunci]</span>
+              <input type="text" id="fb-opt-1-label" required placeholder="Teks pilihan B..." class="flex-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white" />
+            </div>
+            <input type="text" id="fb-opt-1-feedback" required placeholder="Feedback spesifik jika memilih B..." class="w-full px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-300" />
+          </div>
+
+          <!-- Option C -->
+          <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+            <div class="flex items-center gap-3">
+              <input type="radio" name="correct_opt" value="2" class="accent-teal-400 w-4 h-4" />
+              <span class="text-xs font-bold text-teal-400">Pilihan (C)</span>
+              <input type="text" id="fb-opt-2-label" required placeholder="Teks pilihan C..." class="flex-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white" />
+            </div>
+            <input type="text" id="fb-opt-2-feedback" required placeholder="Feedback spesifik jika memilih C..." class="w-full px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-300" />
+          </div>
+
+          <!-- Option D -->
+          <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+            <div class="flex items-center gap-3">
+              <input type="radio" name="correct_opt" value="3" class="accent-teal-400 w-4 h-4" />
+              <span class="text-xs font-bold text-teal-400">Pilihan (D)</span>
+              <input type="text" id="fb-opt-3-label" required placeholder="Teks pilihan D..." class="flex-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white" />
+            </div>
+            <input type="text" id="fb-opt-3-feedback" required placeholder="Feedback spesifik jika memilih D..." class="w-full px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-300" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Konsep Inti Pembahasan</label>
+          <input type="text" id="fb-core-concept" required placeholder="e.g. Hukum Kekekalan Energi & Dinamika Fluida..." class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-teal-400" />
+        </div>
+
+        <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+          <button type="button" id="btn-cancel-form" class="px-5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white">Batal</button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl text-xs font-bold bg-teal-500 hover:bg-teal-400 text-slate-950 transition">
+            Tambahkan ke Kuis
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: WORD (.DOCX) IMPORT & PARSER -->
+  <div id="modal-docx-importer" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-3xl p-6 sm:p-8 flex flex-col gap-6 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center justify-center">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white">Parser Otomatis Dokumen Word (.docx)</h3>
+            <p class="text-xs text-slate-400">Unggah berkas .docx dan konversikan menjadi JSON HOTS otomatis</p>
+          </div>
+        </div>
+        <button id="btn-close-docx-importer" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Drag & drop zone -->
+      <div id="docx-dropzone" class="border-2 border-dashed border-slate-700 hover:border-cyan-400/80 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition bg-slate-950/40 hover:bg-slate-900/60 group">
+        <input type="file" id="docx-file-input" accept=".docx,.txt" class="hidden" />
+        <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+          <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+        </div>
+        <h4 class="text-sm font-bold text-white mb-1">Tarik & Lepas File .docx / .txt di sini</h4>
+        <p class="text-xs text-slate-400 mb-3">Atau klik untuk memilih berkas dari komputer Anda</p>
+        <span class="text-[11px] font-mono px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Mendukung Microsoft Word (.docx) & Teks Terstruktur</span>
+      </div>
+
+      <!-- Quick sample loader -->
+      <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between text-xs">
+        <div>
+          <span class="font-bold text-slate-200">Belum punya file .docx?</span>
+          <p class="text-slate-400 text-[11px]">Uji parser instan dengan templat soal terstruktur bawaan.</p>
+        </div>
+        <button id="btn-load-sample-docx" class="px-3.5 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs transition">
+          Muat Contoh Templat
+        </button>
+      </div>
+
+      <!-- Parse Status Alert -->
+      <div id="docx-parse-status" class="hidden p-3.5 rounded-xl border text-xs"></div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- SCRIPT LOGIC (ENGINE) -->
+  <script>
+    // ==========================================
+    // 1. STATE & DATA INITIALIZATION
+    // ==========================================
+    let quizQuestions = [];
+    let currentQuestionIndex = 0;
+    let selectedOptionId = null;
+    let userAnswers = {}; // { questionId: { selectedId, isCorrect, timeSpent } }
+    let quizStartTime = Date.now();
+    let questionStartTime = Date.now();
+    let timerInterval = null;
+    let timeRemaining = 120; // 2 minutes
+    let soundEnabled = true;
+
+    // Web Audio Synthesizer for High-End Haptic Sounds
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function playTone(type) {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'click') {
+          osc.frequency.setValueAtTime(480, now);
+          osc.frequency.exponentialRampToValueAtTime(320, now + 0.05);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        } else if (type === 'correct') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now); // C5
+          osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+          osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === 'wrong') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now); // A3
+          osc.frequency.linearRampToValueAtTime(160, now + 0.2);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'complete') {
+          osc.type = 'sine';
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+            const chordOsc = audioCtx.createOscillator();
+            const chordGain = audioCtx.createGain();
+            chordOsc.connect(chordGain);
+            chordGain.connect(audioCtx.destination);
+            chordOsc.frequency.setValueAtTime(freq, now + idx * 0.07);
+            chordGain.gain.setValueAtTime(0.08, now + idx * 0.07);
+            chordGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+            chordOsc.start(now + idx * 0.07);
+            chordOsc.stop(now + 0.6);
+          });
+        }
+      } catch (e) {
+        console.warn('Audio feedback error', e);
+      }
+    }
+
+    // Toast Notification Utility
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const colors = {
+        success: 'bg-emerald-950 border-emerald-500/50 text-emerald-300',
+        error: 'bg-rose-950 border-rose-500/50 text-rose-300',
+        info: 'bg-slate-900 border-slate-700 text-slate-200'
+      };
+      toast.className = `px-4 py-2.5 rounded-xl border text-xs font-semibold shadow-xl backdrop-blur-md flex items-center gap-2 pointer-events-auto transition-all duration-300 translate-y-3 opacity-0 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-3', 'opacity-0');
+      }, 20);
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // ==========================================
+    // 2. THREE.JS PROCEDURAL 3D ENGINE
+    // ==========================================
+    let scene, camera, renderer, controls;
+    let currentMeshGroup = null;
+    let particleStars = null;
+    let isAutoRotating = true;
+
+    function initThreeEngine() {
+      const container = document.getElementById('three-container');
+      if (!container) return;
+
+      const width = container.clientWidth || 400;
+      const height = container.clientHeight || 400;
+
+      scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x060911, 0.04);
+
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+      camera.position.set(0, 1.5, 4.5);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.2;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxDistance = 8;
+      controls.minDistance = 2;
+
+      // Lights
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      scene.add(ambientLight);
+
+      const mainLight = new THREE.DirectionalLight(0x06b6d4, 2.0);
+      mainLight.position.set(5, 8, 5);
+      scene.add(mainLight);
+
+      const rimLight = new THREE.DirectionalLight(0x10b981, 1.5);
+      rimLight.position.set(-5, -3, -4);
+      scene.add(rimLight);
+
+      // Star Particles
+      const starGeo = new THREE.BufferGeometry();
+      const starCount = 300;
+      const starPositions = new Float32Array(starCount * 3);
+      for (let i = 0; i < starCount * 3; i++) {
+        starPositions[i] = (Math.random() - 0.5) * 15;
+      }
+      starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+      const starMat = new THREE.PointsMaterial({ color: 0x38bdf8, size: 0.03, transparent: true, opacity: 0.5 });
+      particleStars = new THREE.Points(starGeo, starMat);
+      scene.add(particleStars);
+
+      window.addEventListener('resize', onThreeResize);
+      animateThree();
+    }
+
+    function onThreeResize() {
+      const container = document.getElementById('three-container');
+      if (!container || !renderer || !camera) return;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+
+    function animateThree() {
+      requestAnimationFrame(animateThree);
+      if (controls) controls.update();
+
+      if (currentMeshGroup && isAutoRotating) {
+        currentMeshGroup.rotation.y += 0.007;
+      }
+
+      if (particleStars) {
+        particleStars.rotation.y += 0.0008;
+      }
+
+      if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+      }
+    }
+
+    // Builder for Procedural 3D Models
+    function load3DModelForQuestion(modelType) {
+      if (currentMeshGroup) {
+        scene.remove(currentMeshGroup);
+        currentMeshGroup = null;
+      }
+
+      const group = new THREE.Group();
+
+      if (modelType === 'heart_coronary') {
+        // Procedural Anatomical Heart Model with Coronary Arteries
+        const heartMat = new THREE.MeshStandardMaterial({
+          color: 0xbe123c,
+          roughness: 0.3,
+          metalness: 0.2,
+          wireframe: false
+        });
+        const heartGeom = new THREE.DodecahedronGeometry(1.2, 2);
+        const heartMesh = new THREE.Mesh(heartGeom, heartMat);
+        heartMesh.scale.set(0.9, 1.2, 0.9);
+        group.add(heartMesh);
+
+        // Aorta & Pulmonary Arteries
+        const aortaMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.4 });
+        const aortaCurve = new THREE.CubicBezierCurve3(
+          new THREE.Vector3(0, 0.8, 0),
+          new THREE.Vector3(0.3, 1.6, 0),
+          new THREE.Vector3(-0.5, 1.8, 0),
+          new THREE.Vector3(-0.7, 1.1, 0)
+        );
+        const aortaGeom = new THREE.TubeGeometry(aortaCurve, 20, 0.22, 12, false);
+        const aortaMesh = new THREE.Mesh(aortaGeom, aortaMat);
+        group.add(aortaMesh);
+
+        // Coronary Artery Branch (RCA / LAD representation in bright cyan)
+        const rcaCurve = new THREE.QuadraticBezierCurve3(
+          new THREE.Vector3(0.1, 0.6, 0.8),
+          new THREE.Vector3(0.8, -0.2, 0.9),
+          new THREE.Vector3(0.3, -1.0, 0.6)
+        );
+        const rcaMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x0891b2, roughness: 0.2 });
+        const rcaMesh = new THREE.Mesh(new THREE.TubeGeometry(rcaCurve, 24, 0.07, 8, false), rcaMat);
+        group.add(rcaMesh);
+
+        // Pin Annotation
+        const pinGeom = new THREE.SphereGeometry(0.1, 16, 16);
+        const pinMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee });
+        const pin = new THREE.Mesh(pinGeom, pinMat);
+        pin.position.set(0.7, -0.1, 0.9);
+        group.add(pin);
+
+        document.getElementById('label-3d-model').innerText = "Anatomi Topografi Jantung & RCA";
+      } else if (modelType === 'airfoil_aerodynamics') {
+        // Transonic Airfoil with Streamlines
+        const wingShape = new THREE.Shape();
+        wingShape.moveTo(1.8, 0);
+        wingShape.quadraticCurveTo(0, 0.7, -1.5, 0);
+        wingShape.quadraticCurveTo(0, -0.2, 1.8, 0);
+
+        const extrudeSettings = { depth: 2.2, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.05, bevelThickness: 0.05 };
+        const wingGeom = new THREE.ExtrudeGeometry(wingShape, extrudeSettings);
+        wingGeom.center();
+        const wingMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.2 });
+        const wingMesh = new THREE.Mesh(wingGeom, wingMat);
+        group.add(wingMesh);
+
+        // Streamlines
+        for (let i = -3; i <= 3; i++) {
+          const lineCurve = new THREE.CubicBezierCurve3(
+            new THREE.Vector3(-2.2, 0.4 + i * 0.15, (i * 0.3)),
+            new THREE.Vector3(-0.3, 1.2 + i * 0.1, (i * 0.3)),
+            new THREE.Vector3(1.0, 0.5 + i * 0.1, (i * 0.3)),
+            new THREE.Vector3(2.5, 0.1 + i * 0.15, (i * 0.3))
+          );
+          const lineGeom = new THREE.TubeGeometry(lineCurve, 20, 0.02, 6, false);
+          const lineMat = new THREE.MeshBasicMaterial({ color: i > 0 ? 0x06b6d4 : 0x10b981, transparent: true, opacity: 0.7 });
+          group.add(new THREE.Mesh(lineGeom, lineMat));
+        }
+
+        document.getElementById('label-3d-model').innerText = "Airfoil Transonik & Garis Aliran";
+      } else {
+        // DNA Double Helix Structure
+        const count = 28;
+        const radius = 0.9;
+        const height = 3.2;
+        const dnaGroup = new THREE.Group();
+
+        for (let i = 0; i < count; i++) {
+          const angle = (i / count) * Math.PI * 4;
+          const y = (i / count) * height - height / 2;
+
+          const x1 = Math.cos(angle) * radius;
+          const z1 = Math.sin(angle) * radius;
+          const x2 = -x1;
+          const z2 = -z1;
+
+          // Spheres (Backbone)
+          const sphereMat1 = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.3 });
+          const sphereMat2 = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 });
+
+          const s1 = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), sphereMat1);
+          s1.position.set(x1, y, z1);
+          dnaGroup.add(s1);
+
+          const s2 = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), sphereMat2);
+          s2.position.set(x2, y, z2);
+          dnaGroup.add(s2);
+
+          // Rung connecting bases
+          const rGeom = new THREE.CylinderGeometry(0.03, 0.03, radius * 2, 8);
+          rGeom.rotateZ(Math.PI / 2);
+          rGeom.rotateY(-angle);
+          const rMesh = new THREE.Mesh(rGeom, new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.5 }));
+          rMesh.position.set(0, y, 0);
+          dnaGroup.add(rMesh);
+        }
+        group.add(dnaGroup);
+        document.getElementById('label-3d-model').innerText = "Struktur Heliks Ganda DNA & Residu";
+      }
+
+      scene.add(group);
+      currentMeshGroup = group;
+      camera.position.set(0, 1.5, 4.5);
+      controls.target.set(0, 0, 0);
+    }
+
+    // ==========================================
+    // 3. QUIZ RENDERER & INTERACTION LOGIC
+    // ==========================================
+    function loadInitialQuestions() {
+      fetch('sample-questions.json')
+        .then(res => res.json())
+        .then(data => {
+          quizQuestions = data;
+          initQuizView();
+        })
+        .catch(err => {
+          console.warn('Failed to load JSON file directly, using fallback embed', err);
+          quizQuestions = [
+            {
+              id: "q-cardio-01",
+              order: 1,
+              category: "Kedokteran & Kardiologi",
+              bloomTaxonomy: "evaluate",
+              difficulty: "hard",
+              context: {
+                scenario: "Pria 48 tahun datang ke IGD dengan nyeri substernal hebat sejak 2 jam lalu. Rekaman EKG 12-lead mendeteksi elevasi segmen ST setinggi 3.5 mm pada lead II, III, dan aVF disertai depresi resiprokal pada lead I dan aVL.",
+                supportingMedia: { modelId: "heart_coronary" }
+              },
+              prompt: "Berdasarkan rekaman EKG dan korelasi vaskular model 3D di samping, pembuluh darah manakah yang mengalami oklusi trombotik akut?",
+              options: [
+                { id: "opt_a", label: "Left Anterior Descending (LAD) Artery", isCorrect: false, misconceptionFeedback: "LAD memicu elevasi pada lead anterior (V1-V4), bukan II, III, aVF." },
+                { id: "opt_b", label: "Right Coronary Artery (RCA) - Cabang Posterior", isCorrect: true, misconceptionFeedback: "Tepat! Lead II, III, dan aVF merefleksikan dinding inferior miokard yang disuplai oleh RCA." },
+                { id: "opt_c", label: "Left Circumflex (LCx) Artery", isCorrect: false, misconceptionFeedback: "Oklusi LCx memicu infark lateral tinggi (lead I, aVL)." },
+                { id: "opt_d", label: "Internal Mammary Artery", isCorrect: false, misconceptionFeedback: "Bukan cabang arteri koroner intrinsik miokard." }
+              ],
+              explanation: {
+                coreConcept: "Korelasi Topografi Elektrokardiografi dengan Suplai Vaskular Koroner",
+                stepByStepRationale: [
+                  "Sadapan II, III, dan aVF merekam potensial kelistrikan permukaan inferior jantung.",
+                  "Dinding inferior miokard disuplai oleh Posterior Descending Artery (PDA) dari Right Coronary Artery (RCA) pada 90% individu."
+                ],
+                whyOthersAreWrong: {
+                  "LAD": "Menyuplai anterior dan septum ventrikel.",
+                  "LCx": "Menyuplai lateral jantung."
+                }
+              }
+            }
+          ];
+          initQuizView();
+        });
+    }
+
+    function initQuizView() {
+      currentQuestionIndex = 0;
+      userAnswers = {};
+      selectedOptionId = null;
+      renderCurrentQuestion();
+      startTimer();
+    }
+
+    function renderCurrentQuestion() {
+      if (!quizQuestions || quizQuestions.length === 0) return;
+      const q = quizQuestions[currentQuestionIndex];
+      questionStartTime = Date.now();
+      selectedOptionId = null;
+
+      // Badges
+      document.getElementById('question-badge-category').innerText = q.category || 'Analisis Khusus';
+      document.getElementById('question-badge-bloom').innerText = `${q.bloomTaxonomy || 'ANALYSIS'} • HOTS`;
+      document.getElementById('question-badge-difficulty').innerText = q.difficulty || 'Medium';
+      
+      // Index & Progress bar
+      document.getElementById('current-q-index').innerText = currentQuestionIndex + 1;
+      document.getElementById('total-q-count').innerText = quizQuestions.length;
+      const pct = ((currentQuestionIndex) / quizQuestions.length) * 100;
+      document.getElementById('quiz-progress-bar').style.width = `${Math.max(pct, 10)}%`;
+
+      // Prompt & Scenario
+      document.getElementById('question-scenario-text').innerText = q.context?.scenario || '';
+      document.getElementById('question-prompt-text').innerText = q.prompt;
+
+      // 3D Model loading
+      const modelId = q.context?.supportingMedia?.modelId || 'heart_coronary';
+      load3DModelForQuestion(modelId);
+
+      // Options Rendering
+      const optionsContainer = document.getElementById('options-container');
+      optionsContainer.innerHTML = '';
+
+      const letters = ['A', 'B', 'C', 'D', 'E'];
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `option-button w-full text-left p-4 rounded-xl glass-card-interactive flex items-start gap-3.5 group`;
+        btn.dataset.optionId = opt.id;
+        btn.innerHTML = `
+          <span class="opt-letter w-7 h-7 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 font-mono font-bold text-xs flex items-center justify-center flex-shrink-0 group-hover:border-teal-400 group-hover:text-teal-300 transition">
+            ${letters[idx] || idx + 1}
+          </span>
+          <span class="text-sm text-slate-200 group-hover:text-white leading-relaxed pt-0.5">
+            ${opt.label}
+          </span>
+        `;
+        btn.onclick = () => selectOption(opt.id);
+        optionsContainer.appendChild(btn);
+      });
+
+      // Reset Actions
+      const confirmBtn = document.getElementById('btn-confirm-answer');
+      confirmBtn.disabled = true;
+      confirmBtn.classList.remove('hidden');
+
+      const nextBtn = document.getElementById('btn-next-question');
+      nextBtn.classList.add('hidden');
+
+      const feedbackBox = document.getElementById('instant-feedback-box');
+      feedbackBox.classList.add('hidden');
+
+      lucide.createIcons();
+    }
+
+    function selectOption(optId) {
+      selectedOptionId = optId;
+      playTone('click');
+
+      const buttons = document.querySelectorAll('.option-button');
+      buttons.forEach(btn => {
+        const letter = btn.querySelector('.opt-letter');
+        if (btn.dataset.optionId === optId) {
+          btn.className = 'option-button w-full text-left p-4 rounded-xl bg-teal-500/15 border-2 border-teal-400 flex items-start gap-3.5 shadow-lg shadow-teal-500/10';
+          letter.className = 'opt-letter w-7 h-7 rounded-lg bg-teal-400 text-slate-950 font-mono font-black text-xs flex items-center justify-center flex-shrink-0 shadow';
+        } else {
+          btn.className = 'option-button w-full text-left p-4 rounded-xl glass-card-interactive flex items-start gap-3.5 group opacity-80';
+          letter.className = 'opt-letter w-7 h-7 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 font-mono font-bold text-xs flex items-center justify-center flex-shrink-0';
+        }
+      });
+
+      document.getElementById('btn-confirm-answer').disabled = false;
+    }
+
+    function confirmAnswer() {
+      if (!selectedOptionId) return;
+
+      const q = quizQuestions[currentQuestionIndex];
+      const selectedOpt = q.options.find(o => o.id === selectedOptionId);
+      const isCorrect = selectedOpt ? selectedOpt.isCorrect : false;
+      const timeSpent = Math.round((Date.now() - questionStartTime) / 1000);
+
+      userAnswers[q.id] = {
+        question: q,
+        selectedId: selectedOptionId,
+        isCorrect: isCorrect,
+        timeSpent: timeSpent,
+        status: isCorrect ? 'correct' : 'wrong'
+      };
+
+      // Sound & Visual Feedback
+      if (isCorrect) {
+        playTone('correct');
+        showToast('Analisis Anda Benar! (+100 Poin)', 'success');
+      } else {
+        playTone('wrong');
+        showToast('Pilihan belum tepat. Cermati feedback miskonsepsi.', 'error');
+      }
+
+      // Highlight options
+      const buttons = document.querySelectorAll('.option-button');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        const opt = q.options.find(o => o.id === btn.dataset.optionId);
+        if (opt && opt.isCorrect) {
+          btn.className = 'option-button w-full text-left p-4 rounded-xl bg-emerald-500/20 border-2 border-emerald-400 flex items-start gap-3.5 text-white';
+        } else if (btn.dataset.optionId === selectedOptionId && !isCorrect) {
+          btn.className = 'option-button w-full text-left p-4 rounded-xl bg-rose-500/20 border-2 border-rose-500 flex items-start gap-3.5 text-white';
+        }
+      });
+
+      // Show Instant Misconception Feedback Box
+      const feedbackBox = document.getElementById('instant-feedback-box');
+      const feedbackTitle = document.getElementById('feedback-title');
+      const feedbackDesc = document.getElementById('feedback-desc');
+      const feedbackIcon = document.getElementById('feedback-icon');
+
+      feedbackBox.classList.remove('hidden');
+      if (isCorrect) {
+        feedbackBox.className = 'mt-4 p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/40 text-emerald-200';
+        feedbackTitle.innerText = "Diagnosis Tepat!";
+        feedbackDesc.innerText = selectedOpt.misconceptionFeedback || "Pemahaman logis Anda selaras dengan prinsip dasar materi.";
+      } else {
+        feedbackBox.className = 'mt-4 p-4 rounded-xl border border-rose-500/40 bg-rose-950/40 text-rose-200';
+        feedbackTitle.innerText = "Umpan Balik Miskonsepsi:";
+        feedbackDesc.innerText = selectedOpt.misconceptionFeedback || "Opsi ini kurang tepat berdasarkan korelasi data empiris kasus.";
+      }
+
+      // Switch buttons
+      document.getElementById('btn-confirm-answer').classList.add('hidden');
+      document.getElementById('btn-next-question').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function skipQuestion() {
+      const q = quizQuestions[currentQuestionIndex];
+      userAnswers[q.id] = {
+        question: q,
+        selectedId: null,
+        isCorrect: false,
+        timeSpent: Math.round((Date.now() - questionStartTime) / 1000),
+        status: 'skipped'
+      };
+      playTone('click');
+      showToast('Soal dilewati.', 'info');
+      advanceNextQuestion();
+    }
+
+    function advanceNextQuestion() {
+      if (currentQuestionIndex < quizQuestions.length - 1) {
+        currentQuestionIndex++;
+        renderCurrentQuestion();
+      } else {
+        finishQuiz();
+      }
+    }
+
+    // Timer Logic
+    function startTimer() {
+      clearInterval(timerInterval);
+      timeRemaining = 180; // 3 minutes total
+      const timerDisplay = document.getElementById('timer-display');
+      const quizHeaderTimer = document.getElementById('quiz-header-timer');
+      quizHeaderTimer.classList.remove('hidden');
+      quizHeaderTimer.classList.add('flex');
+
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        const mins = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
+        const secs = String(timeRemaining % 60).padStart(2, '0');
+        timerDisplay.innerText = `${mins}:${secs}`;
+
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          finishQuiz();
+        }
+      }, 1000);
+    }
+
+    // ==========================================
+    // 4. PERFORMANCE ANALYTICS & REVIEW PAGE
+    // ==========================================
+    function finishQuiz() {
+      clearInterval(timerInterval);
+      playTone('complete');
+
+      document.getElementById('view-quiz').classList.add('hidden');
+      document.getElementById('view-result').classList.remove('hidden');
+      document.getElementById('view-result').classList.add('flex');
+
+      // Calculate statistics
+      let correctCount = 0;
+      let wrongCount = 0;
+      let skippedCount = 0;
+      let totalTime = 0;
+
+      quizQuestions.forEach(q => {
+        const ans = userAnswers[q.id];
+        if (!ans || ans.status === 'skipped') {
+          skippedCount++;
+        } else if (ans.isCorrect) {
+          correctCount++;
+        } else {
+          wrongCount++;
+        }
+        if (ans) totalTime += ans.timeSpent || 0;
+      });
+
+      const totalQuestions = quizQuestions.length;
+      const accuracyPct = Math.round((correctCount / totalQuestions) * 100) || 0;
+      const totalScore = correctCount * 100;
+      const maxScore = totalQuestions * 100;
+      const avgTime = Math.round(totalTime / totalQuestions) || 15;
+
+      // Populate Numbers
+      document.getElementById('donut-center-pct').innerText = `${accuracyPct}%`;
+      document.getElementById('stat-count-correct').innerText = correctCount;
+      document.getElementById('stat-count-wrong').innerText = wrongCount;
+      document.getElementById('stat-count-skipped').innerText = skippedCount;
+      document.getElementById('stat-total-score').innerText = totalScore;
+      document.getElementById('stat-max-score').innerText = maxScore;
+      document.getElementById('stat-avg-time').innerText = avgTime;
+
+      // Render Animated Donut Chart (Benar, Salah, Dilewati)
+      renderDonutChart(correctCount, wrongCount, skippedCount, totalQuestions);
+
+      // Render Accordion Review List
+      renderReviewAccordions('all');
+
+      lucide.createIcons();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderDonutChart(correct, wrong, skipped, total) {
+      const svg = document.getElementById('donut-svg');
+      svg.innerHTML = '';
+
+      const size = 160;
+      const strokeWidth = 18;
+      const radius = (size - strokeWidth) / 2;
+      const circumference = 2 * Math.PI * radius;
+      const center = size / 2;
+
+      // Base Track
+      const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      bgCircle.setAttribute('cx', center);
+      bgCircle.setAttribute('cy', center);
+      bgCircle.setAttribute('r', radius);
+      bgCircle.setAttribute('fill', 'none');
+      bgCircle.setAttribute('stroke', '#1e293b');
+      bgCircle.setAttribute('stroke-width', strokeWidth);
+      svg.appendChild(bgCircle);
+
+      const segments = [
+        { count: correct, color: '#10b981' }, // Emerald
+        { count: wrong, color: '#f43f5e' },   // Rose
+        { count: skipped, color: '#f59e0b' }  // Amber
+      ];
+
+      let accumulatedAngle = 0;
+      segments.forEach(seg => {
+        if (seg.count <= 0) return;
+        const ratio = seg.count / total;
+        const strokeDasharray = `${circumference * ratio} ${circumference * (1 - ratio)}`;
+        const strokeDashoffset = -circumference * (accumulatedAngle / total);
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', center);
+        circle.setAttribute('cy', center);
+        circle.setAttribute('r', radius);
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke', seg.color);
+        circle.setAttribute('stroke-width', strokeWidth);
+        circle.setAttribute('stroke-dasharray', strokeDasharray);
+        circle.setAttribute('stroke-dashoffset', strokeDashoffset);
+        circle.setAttribute('stroke-linecap', 'round');
+        circle.style.transition = 'all 1s cubic-bezier(0.16, 1, 0.3, 1)';
+        svg.appendChild(circle);
+
+        accumulatedAngle += seg.count;
+      });
+    }
+
+    function renderReviewAccordions(filterMode) {
+      const container = document.getElementById('review-accordion-list');
+      container.innerHTML = '';
+
+      quizQuestions.forEach((q, idx) => {
+        const ans = userAnswers[q.id];
+        const status = ans ? ans.status : 'skipped';
+
+        if (filterMode === 'correct' && status !== 'correct') return;
+        if (filterMode === 'wrong' && status !== 'wrong') return;
+
+        const isCorrect = status === 'correct';
+        const isSkipped = status === 'skipped';
+
+        const statusBadge = isCorrect
+          ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold font-mono">BENAR (+100)</span>`
+          : isSkipped
+          ? `<span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold font-mono">DILEWATI (0)</span>`
+          : `<span class="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold font-mono">SALAH (0)</span>`;
+
+        const userSelectedOpt = q.options.find(o => o.id === ans?.selectedId);
+        const correctOpt = q.options.find(o => o.isCorrect);
+
+        const card = document.createElement('div');
+        card.className = 'rounded-2xl glass-panel border border-slate-800 overflow-hidden';
+        card.innerHTML = `
+          <button class="accordion-toggle w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 hover:bg-slate-800/40 transition">
+            <div class="flex items-center gap-3">
+              <span class="w-8 h-8 rounded-xl bg-slate-800 text-slate-300 font-mono font-bold text-xs flex items-center justify-center flex-shrink-0">
+                #${idx + 1}
+              </span>
+              <div>
+                <h4 class="text-sm sm:text-base font-bold text-white line-clamp-1">${q.prompt}</h4>
+                <p class="text-xs text-slate-400 mt-0.5">${q.category} • Taksonomi ${q.bloomTaxonomy?.toUpperCase()}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 flex-shrink-0">
+              ${statusBadge}
+              <i data-lucide="chevron-down" class="accordion-icon w-4 h-4 text-slate-400 transition-transform duration-300"></i>
+            </div>
+          </button>
+
+          <div class="accordion-content hidden p-5 border-t border-slate-800/80 bg-slate-950/50 space-y-4 text-xs sm:text-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800">
+                <span class="text-[11px] text-slate-400 block font-mono mb-1">Jawaban Anda:</span>
+                <span class="font-bold ${isCorrect ? 'text-emerald-400' : isSkipped ? 'text-amber-400' : 'text-rose-400'}">
+                  ${userSelectedOpt ? userSelectedOpt.label : 'Tidak ada (Dilewati)'}
+                </span>
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800">
+                <span class="text-[11px] text-slate-400 block font-mono mb-1">Kunci Jawaban Tepat:</span>
+                <span class="font-bold text-emerald-400">
+                  ${correctOpt ? correctOpt.label : '-'}
+                </span>
+              </div>
+            </div>
+
+            <!-- Deep Core Concept -->
+            <div class="p-4 rounded-xl bg-cyan-950/20 border border-cyan-800/40">
+              <span class="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wide block mb-1">
+                Konsep Inti & Pembuktian Logis
+              </span>
+              <p class="text-slate-300 leading-relaxed mb-2">${q.explanation?.coreConcept || 'Korelasi anatomi dan mekanisme dasar.'}</p>
+              <ul class="list-disc pl-4 space-y-1 text-slate-400 text-xs">
+                ${(q.explanation?.stepByStepRationale || []).map(step => `<li>${step}</li>`).join('')}
+              </ul>
+            </div>
+
+            <!-- Distractor Analysis (Why Others Are Wrong) -->
+            ${q.explanation?.whyOthersAreWrong ? `
+              <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+                <span class="text-xs font-mono font-bold text-rose-400 uppercase tracking-wide block mb-2">
+                  Bedah Analisis Pengecoh:
+                </span>
+                <div class="space-y-1.5 text-xs text-slate-300">
+                  ${Object.entries(q.explanation.whyOthersAreWrong).map(([key, val]) => `
+                    <div><span class="font-semibold text-slate-200">• ${key}:</span> <span class="text-slate-400">${val}</span></div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+
+        // Toggle logic
+        const toggleBtn = card.querySelector('.accordion-toggle');
+        const content = card.querySelector('.accordion-content');
+        const icon = card.querySelector('.accordion-icon');
+        toggleBtn.onclick = () => {
+          content.classList.toggle('hidden');
+          icon.classList.toggle('rotate-180');
+        };
+
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // 5. WORD (.DOCX) AUTOMATED PARSER LOGIC
+    // ==========================================
+    function parseStructuredWordText(rawText) {
+      const questions = [];
+      const blocks = rawText.split(/\[SOAL\]/gi).filter(b => b.trim().length > 0);
+
+      blocks.forEach((block, idx) => {
+        try {
+          const categoryMatch = block.match(/\[KATEGORI:\s*([^\]]+)\]/i);
+          const taxonomyMatch = block.match(/\[TAKSONOMI:\s*([^\]]+)\]/i);
+          const modelMatch = block.match(/\[MODEL_3D:\s*([^\]]+)\]/i);
+
+          const contextMatch = block.match(/Konteks:\s*([\s\S]*?)(?=Pertanyaan:|$)/i);
+          const promptMatch = block.match(/Pertanyaan:\s*([\s\S]*?)(?=\([A-E]\)|$)/i);
+
+          // Extract options
+          const optionRegex = /\*?\(([A-E])\)\s*([^\n\r]+)(?:[\r\n]+Feedback:\s*([^\n\r]+))?/gi;
+          const options = [];
+          let optMatch;
+          let optIndex = 0;
+
+          // Check if asterisk marks the correct answer e.g. *(B)
+          const rawOptionsBlock = block.slice(block.indexOf('Pertanyaan:'));
+          const lines = rawOptionsBlock.split('\n');
+
+          lines.forEach(line => {
+            const trimmed = line.trim();
+            const isStarred = trimmed.startsWith('*');
+            const clean = isStarred ? trimmed.slice(1).trim() : trimmed;
+            const letterMatch = clean.match(/^\(([A-E])\)\s*(.*)/i);
+            if (letterMatch) {
+              options.push({
+                id: `opt_${letterMatch[1].toLowerCase()}`,
+                label: letterMatch[2].trim(),
+                isCorrect: isStarred,
+                misconceptionFeedback: `Analisis opsi (${letterMatch[1]})`
+              });
+            }
+          });
+
+          // Extract Explanation
+          const explanationMatch = block.match(/\[PEMBAHASAN\]([\s\S]*?)$/i);
+          const coreConceptMatch = block.match(/Konsep Inti:\s*([^\n\r]+)/i);
+
+          questions.push({
+            id: `q-docx-${Date.now()}-${idx}`,
+            order: idx + 1,
+            category: categoryMatch ? categoryMatch[1].trim() : 'Sains Terintegrasi',
+            bloomTaxonomy: taxonomyMatch ? taxonomyMatch[1].toLowerCase().includes('eval') ? 'evaluate' : 'analyze' : 'evaluate',
+            difficulty: 'hard',
+            context: {
+              scenario: contextMatch ? contextMatch[1].trim() : 'Konteks studi kasus empiris...',
+              supportingMedia: {
+                modelId: modelMatch ? modelMatch[1].trim() : 'heart_coronary'
+              }
+            },
+            prompt: promptMatch ? promptMatch[1].trim() : 'Pertanyaan evaluasi...',
+            options: options.length >= 2 ? options : [
+              { id: 'opt_a', label: 'Opsi A', isCorrect: false, misconceptionFeedback: 'Opsi kurang tepat.' },
+              { id: 'opt_b', label: 'Opsi B', isCorrect: true, misconceptionFeedback: 'Tepat!' }
+            ],
+            explanation: {
+              coreConcept: coreConceptMatch ? coreConceptMatch[1].trim() : 'Rasionalisasi konsep ilmiah terpadu.',
+              stepByStepRationale: ['Pengecekan premis kasus.', 'Korelasi anatomi dan data empiris.'],
+              whyOthersAreWrong: {}
+            }
+          });
+        } catch (e) {
+          console.error('Error parsing block', e);
+        }
+      });
+
+      return questions;
+    }
+
+    function handleDocxFile(file) {
+      const statusEl = document.getElementById('docx-parse-status');
+      statusEl.classList.remove('hidden');
+      statusEl.className = 'p-3.5 rounded-xl border border-cyan-500/30 bg-cyan-950/40 text-cyan-300 text-xs flex items-center gap-2';
+      statusEl.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Mengekstrak dan memproses AST dokumen Word...</span>`;
+      lucide.createIcons();
+
+      if (file.name.endsWith('.docx')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const arrayBuffer = e.target.result;
+          mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+            .then(result => {
+              const text = result.value;
+              const parsed = parseStructuredWordText(text);
+              if (parsed.length > 0) {
+                quizQuestions = parsed;
+                statusEl.className = 'p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-950/40 text-emerald-300 text-xs';
+                statusEl.innerHTML = `<strong>Berhasil!</strong> ${parsed.length} soal HOTS berhasil diimpor dari file Word.`;
+                setTimeout(() => {
+                  document.getElementById('modal-docx-importer').classList.add('hidden');
+                  document.getElementById('modal-docx-importer').classList.remove('flex');
+                  initQuizView();
+                  showToast(`${parsed.length} Soal Word berhasil dimuat!`, 'success');
+                }, 1200);
+              } else {
+                statusEl.className = 'p-3.5 rounded-xl border border-rose-500/30 bg-rose-950/40 text-rose-300 text-xs';
+                statusEl.innerHTML = `Format token [SOAL] tidak ditemukan. Silakan periksa template.`;
+              }
+            })
+            .catch(err => {
+              statusEl.className = 'p-3.5 rounded-xl border border-rose-500/30 bg-rose-950/40 text-rose-300 text-xs';
+              statusEl.innerText = `Gagal memproses .docx: ${err.message}`;
+            });
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        // Plain text fallback
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const text = e.target.result;
+          const parsed = parseStructuredWordText(text);
+          if (parsed.length > 0) {
+            quizQuestions = parsed;
+            statusEl.className = 'p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-950/40 text-emerald-300 text-xs';
+            statusEl.innerHTML = `<strong>Berhasil!</strong> ${parsed.length} soal berhasil dimuat.`;
+            setTimeout(() => {
+              document.getElementById('modal-docx-importer').classList.add('hidden');
+              document.getElementById('modal-docx-importer').classList.remove('flex');
+              initQuizView();
+            }, 1000);
+          }
+        };
+        reader.readAsText(file);
+      }
+    }
+
+    // ==========================================
+    // 6. EVENT LISTENERS & DOM BINDINGS
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      initThreeEngine();
+      loadInitialQuestions();
+
+      // Navigation & Actions
+      document.getElementById('btn-confirm-answer').addEventListener('click', confirmAnswer);
+      document.getElementById('btn-next-question').addEventListener('click', advanceNextQuestion);
+      document.getElementById('btn-skip-question').addEventListener('click', skipQuestion);
+      document.getElementById('btn-restart-quiz').addEventListener('click', () => {
+        document.getElementById('view-result').classList.add('hidden');
+        document.getElementById('view-result').classList.remove('flex');
+        document.getElementById('view-quiz').classList.remove('hidden');
+        initQuizView();
+      });
+
+      // 3D Controls
+      document.getElementById('btn-reset-camera').addEventListener('click', () => {
+        if (camera && controls) {
+          camera.position.set(0, 1.5, 4.5);
+          controls.target.set(0, 0, 0);
+          controls.update();
+        }
+      });
+      document.getElementById('btn-toggle-autorotate').addEventListener('click', () => {
+        isAutoRotating = !isAutoRotating;
+        const icon = document.getElementById('icon-autorotate');
+        icon.className = isAutoRotating ? 'w-3.5 h-3.5 text-cyan-400' : 'w-3.5 h-3.5 text-slate-500';
+      });
+
+      // Sound Toggle
+      document.getElementById('btn-toggle-sound').addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        const icon = document.getElementById('sound-icon');
+        icon.className = soundEnabled ? 'w-4 h-4 text-teal-400' : 'w-4 h-4 text-slate-500';
+        showToast(soundEnabled ? 'Efek Suara Aktif' : 'Efek Suara Dinonaktifkan', 'info');
+      });
+
+      // Form Builder Modal
+      const modalFb = document.getElementById('modal-form-builder');
+      document.getElementById('btn-open-form-builder').addEventListener('click', () => {
+        modalFb.classList.remove('hidden');
+        modalFb.classList.add('flex');
+        lucide.createIcons();
+      });
+      document.getElementById('btn-close-form-builder').addEventListener('click', () => {
+        modalFb.classList.add('hidden');
+        modalFb.classList.remove('flex');
+      });
+      document.getElementById('btn-cancel-form').addEventListener('click', () => {
+        modalFb.classList.add('hidden');
+        modalFb.classList.remove('flex');
+      });
+
+      document.getElementById('form-create-question').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const correctIndex = parseInt(document.querySelector('input[name="correct_opt"]:checked').value);
+        const options = [0, 1, 2, 3].map(idx => ({
+          id: `opt_${String.fromCharCode(97 + idx)}`,
+          label: document.getElementById(`fb-opt-${idx}-label`).value,
+          isCorrect: idx === correctIndex,
+          misconceptionFeedback: document.getElementById(`fb-opt-${idx}-feedback`).value
+        }));
+
+        const newQ = {
+          id: `q-custom-${Date.now()}`,
+          order: quizQuestions.length + 1,
+          category: document.getElementById('fb-category').value,
+          bloomTaxonomy: document.getElementById('fb-bloom').value,
+          difficulty: 'hard',
+          context: {
+            scenario: document.getElementById('fb-scenario').value,
+            supportingMedia: { modelId: document.getElementById('fb-3d-model').value }
+          },
+          prompt: document.getElementById('fb-prompt').value,
+          options: options,
+          explanation: {
+            coreConcept: document.getElementById('fb-core-concept').value,
+            stepByStepRationale: ['Analisis parameter skenario kasus.', 'Verifikasi opsi kunci.'],
+            whyOthersAreWrong: {}
+          }
+        };
+
+        quizQuestions.push(newQ);
+        modalFb.classList.add('hidden');
+        modalFb.classList.remove('flex');
+        showToast('Soal baru berhasil ditambahkan!', 'success');
+        document.getElementById('total-q-count').innerText = quizQuestions.length;
+      });
+
+      // Word Importer Modal
+      const modalDocx = document.getElementById('modal-docx-importer');
+      document.getElementById('btn-open-docx-importer').addEventListener('click', () => {
+        modalDocx.classList.remove('hidden');
+        modalDocx.classList.add('flex');
+        lucide.createIcons();
+      });
+      document.getElementById('btn-close-docx-importer').addEventListener('click', () => {
+        modalDocx.classList.add('hidden');
+        modalDocx.classList.remove('flex');
+      });
+
+      const dropzone = document.getElementById('docx-dropzone');
+      const fileInput = document.getElementById('docx-file-input');
+      dropzone.onclick = () => fileInput.click();
+
+      fileInput.onchange = (e) => {
+        if (e.target.files.length > 0) handleDocxFile(e.target.files[0]);
+      };
+
+      dropzone.ondragover = (e) => { e.preventDefault(); dropzone.classList.add('border-cyan-400'); };
+      dropzone.ondragleave = () => { dropzone.classList.remove('border-cyan-400'); };
+      dropzone.ondrop = (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-cyan-400');
+        if (e.dataTransfer.files.length > 0) handleDocxFile(e.dataTransfer.files[0]);
+      };
+
+      // Load Sample Word Template button
+      document.getElementById('btn-load-sample-docx').addEventListener('click', () => {
+        fetch('template_format.txt')
+          .then(r => r.text())
+          .then(txt => {
+            const parsed = parseStructuredWordText(txt);
+            if (parsed.length > 0) {
+              quizQuestions = parsed;
+              modalDocx.classList.add('hidden');
+              modalDocx.classList.remove('flex');
+              initQuizView();
+              showToast('Contoh Templat Word berhasil dimuat!', 'success');
+            }
+          });
+      });
+
+      // Review Filters
+      document.querySelectorAll('.filter-review-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-review-btn').forEach(b => {
+            b.className = 'filter-review-btn px-3 py-1 rounded-lg text-slate-400 hover:text-slate-200';
+          });
+          btn.className = 'filter-review-btn active px-3 py-1 rounded-lg bg-teal-500/20 text-teal-300 font-semibold';
+          renderReviewAccordions(btn.dataset.filter);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

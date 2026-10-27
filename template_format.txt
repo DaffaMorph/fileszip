@@ -1,0 +1,31 @@
+================================================================================
+CONTOH TEMPLATE DOKUMEN WORD (.DOCX) UNTUK IMPOR KUIS INTERAKTIF
+================================================================================
+Anda dapat menyalin teks berikut ke dalam dokumen Microsoft Word (.docx) 
+atau mengunggah dokumen dengan sintaks token berikut untuk diparsing otomatis:
+
+[SOAL]
+[KATEGORI: Kedokteran & Kardiologi]
+[TAKSONOMI: EVALUATE | HARD]
+[MODEL_3D: heart_coronary]
+
+Konteks: Seorang pria 52 tahun datang dengan nyeri dada kiri tembus ke punggung. Pasien diketahui perokok aktif 20 tahun. Hasil angiografi koroner menunjukkan plaque rupture dengan thrombus parsial pada cabang arteri desenden posterior.
+
+Pertanyaan: Berdasarkan korelasi vaskular jantung 3D, arteri manakah yang mensuplai 85% cabang anatomis tersebut pada varian dominan kanan?
+
+(A) Left Anterior Descending Artery
+Feedback: LAD mensuplai septum anterior dan dinding apikal, bukan cabang desenden posterior.
+*(B) Right Coronary Artery (RCA)
+Feedback: Tepat! Pada sistem dominan kanan, RCA bercabang menjadi Posterior Descending Artery (PDA).
+(C) Left Circumflex Artery
+Feedback: LCx hanya mensuplai PDA pada sistem left-dominant (sekitar 10% populasi).
+(D) Arteri Mamaria Interna
+Feedback: Arteri ini berada di mediastinum anterior dan bukan arteri koroner native.
+
+[PEMBAHASAN]
+Konsep Inti: Dominansi Vaskularisasi Arteri Koroner Jantung Manusia.
+Langkah Analisis:
+1. Identifikasi cabang Posterior Descending Artery (PDA) yang mensuplai sepertiga posterior septum interventrikular.
+2. Dominansi jantung ditentukan oleh arteri mana yang mempercabangkan PDA (RCA = 85%, LCx = 10%, Kodominan = 5%).
+3. Kasus ini merujuk pada anatomi dominan kanan (RCA).
+================================================================================

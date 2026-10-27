@@ -1,0 +1,173 @@
+[
+  {
+    "id": "q-cardio-01",
+    "order": 1,
+    "category": "Kedokteran & Kardiologi",
+    "bloomTaxonomy": "evaluate",
+    "difficulty": "hard",
+    "context": {
+      "scenario": "Pria 48 tahun datang ke IGD dengan nyeri substernal hebat menjalar ke rahang bawah sejak 2 jam lalu. Rekaman EKG 12-lead mendeteksi elevasi segmen ST setinggi 3.5 mm pada lead II, III, dan aVF, disertai depresi resiprokal di lead I dan aVL. Pasien memiliki riwayat hipertensi dan dislipidemia tidak terkontrol.",
+      "supportingMedia": {
+        "type": "3d_model",
+        "modelId": "heart_coronary",
+        "title": "Topografi Vaskular Jantung Manusia",
+        "instruction": "Putar model 3D dan amati percabangan arteri koroner di area inferior dan anterior."
+      }
+    },
+    "prompt": "Berdasarkan rekaman EKG 12-lead dan korelasi anatomi vaskular pada model 3D di samping, pembuluh darah manakah yang mengalami oklusi trombotik akut primer?",
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "Left Anterior Descending (LAD) Artery",
+        "isCorrect": false,
+        "misconceptionFeedback": "LAD mendarahi dinding anterior dan septum ventrikel. Oklusi LAD bermanifestasi pada lead V1-V4 (STEMI Anterior), bukan II, III, aVF."
+      },
+      {
+        "id": "opt_b",
+        "label": "Right Coronary Artery (RCA) - Cabang Posterior Descending",
+        "isCorrect": true,
+        "misconceptionFeedback": "Tepat! Lead II, III, dan aVF secara langsung merefleksikan dinding inferior miokard yang disuplai oleh RCA (pada 85-90% populasi dominan kanan)."
+      },
+      {
+        "id": "opt_c",
+        "label": "Left Circumflex (LCx) Artery - Cabang Marginal",
+        "isCorrect": false,
+        "misconceptionFeedback": "Oklusi LCx memicu infark lateral tinggi (elevasi pada lead I dan aVL), yang pada kasus ini justru mengalami depresi ST resiprokal."
+      },
+      {
+        "id": "opt_d",
+        "label": "Internal Mammary Artery (IMA)",
+        "isCorrect": false,
+        "misconceptionFeedback": "Arteri mamaria interna adalah pembuluh darah dinding dada yang sering digunakan untuk graft CABG, bukan cabang primer sirkulasi koroner endogen."
+      }
+    ],
+    "explanation": {
+      "coreConcept": "Korelasi Topografi Elektrokardiografi dengan Suplai Vaskular Koroner",
+      "stepByStepRationale": [
+        "Elevasi segmen ST pada sadapan II, III, dan aVF menunjukkan infark transmural pada dinding inferior ventrikel kiri.",
+        "Pada konfigurasi anatomis standar (right-dominant circulation), dinding inferior miokardium didarahi oleh Posterior Descending Artery (PDA) yang berakar dari Right Coronary Artery (RCA).",
+        "Depresi segmen ST pada sadapan lateral (I, aVL) memperkuat diagnosis sebagai perubahan resiprokal spesifik dari STEMI dinding inferior."
+      ],
+      "whyOthersAreWrong": {
+        "Left Anterior Descending": "Menyuplai dinding anterior & apeks (Lead V1-V4). Oklusi LAD sering disebut 'widow maker' dengan gambaran anterior masif.",
+        "Left Circumflex": "Menyuplai dinding lateral jantung; infark LCx tercermin pada lead I, aVL, V5-V6.",
+        "Internal Mammary Artery": "Bukan arteri koroner intrinsik, melainkan arteri donor untuk bypass."
+      },
+      "referenceSource": "Braunwald's Heart Disease: A Textbook of Cardiovascular Medicine, 12th Ed."
+    }
+  },
+  {
+    "id": "q-aero-02",
+    "order": 2,
+    "category": "Teknik Dirgantara & Fluida",
+    "bloomTaxonomy": "analyze",
+    "difficulty": "expert",
+    "context": {
+      "scenario": "Sebuah prototipe pesawat nirawak transonik beroperasi pada Mach 0.78 di ketinggian 32.000 kaki. Sensor telemetri mendeteksi pemisahan aliran udara lokal (boundary layer separation) secara prematur di atas permukaan atas airfoil pada sudut serang (Angle of Attack) 9 derajat, menyebabkan lonjakan drag gelombang secara drastis.",
+      "supportingMedia": {
+        "type": "3d_model",
+        "modelId": "airfoil_aerodynamics",
+        "title": "Model Distribusi Garis Arus Aerodinamika Airfoil",
+        "instruction": "Interaksikan airfoil 3D untuk melihat titik transisi aliran laminer ke turbulen."
+      }
+    },
+    "prompt": "Modifikasi aerodinamis manakah yang paling efektif untuk menunda titik separasi aliran tanpa mengubah geometri ketebalan profil airfoil secara menyeluruh?",
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "Mengurangi sweep angle sayap menjadi lurus",
+        "isCorrect": false,
+        "misconceptionFeedback": "Mengurangi sweep angle pada kecepatan transonik justru menurunkan Critical Mach Number dan mempercepat timbulnya shockwave."
+      },
+      {
+        "id": "opt_b",
+        "label": "Pemasangan Vortex Generators (VG) pada 20-30% chord length",
+        "isCorrect": true,
+        "misconceptionFeedback": "Benar. Vortex generator mengalirkan energi momentum tinggi dari aliran bebas ke dalam boundary layer, mencegah separasi akibat adverse pressure gradient."
+      },
+      {
+        "id": "opt_c",
+        "label": "Memperpanjang trailing-edge flap ke bawah secara konstan",
+        "isCorrect": false,
+        "misconceptionFeedback": "Menurunkan flap memperbesar camber dan meningkatkan adverse pressure gradient di bagian punggung sayap, sehingga separasi justru terjadi lebih awal."
+      },
+      {
+        "id": "opt_d",
+        "label": "Meningkatkan kekasaran permukaan leading edge secara merata",
+        "isCorrect": false,
+        "misconceptionFeedback": "Kekasaran acak berlebihan akan meningkatkan skin friction drag dan dapat memicu separasi titik leading edge (stall mendadak)."
+      }
+    ],
+    "explanation": {
+      "coreConcept": "Manajemen Boundary Layer dan Kontrol Separasi Aliran Transonik",
+      "stepByStepRationale": [
+        "Pada kecepatan transonik dengan adverse pressure gradient tinggi, lapisan batas (boundary layer) kehilangan momentum kinetik di dekat dinding profil.",
+        "Vortex generator mikroskopis menciptakan pusaran aliran heliks yang menarik udara berenergi tinggi dari freestream masuk ke lapisan batas lambat.",
+        "Hal ini memperkuat ketahanan profil dari separasi dini, menunda separasi titik ke arah trailing edge, dan mereduksi separasi stall."
+      ],
+      "whyOthersAreWrong": {
+        "Mengurangi sweep angle": "Meningkatkan kecepatan komponen tegak lurus sayap, memperburuk wave drag transonik.",
+        "Flap ekstensi konstan": "Menciptakan tekanan hisap ekstrem yang memicu separasi lebih parah pada AoA tinggi.",
+        "Kekasaran sembarangan": "Memicu turbulensi parasitik tanpa arah pusaran yang koheren."
+      },
+      "referenceSource": "Anderson, J. D. Fundamentals of Aerodynamics (6th Edition), McGraw-Hill."
+    }
+  },
+  {
+    "id": "q-gen-03",
+    "order": 3,
+    "category": "Biologi Molekuler & Genetika",
+    "bloomTaxonomy": "evaluate",
+    "difficulty": "medium",
+    "context": {
+      "scenario": "Analisis sekuensing genom tumor mendeteksi mutasi titik nonsynonymous pada gen TP53 kodon 248 (Arg248Trp). Mutasi ini terletak pada domain pengikatan DNA inti dari protein p53 tetramerik.",
+      "supportingMedia": {
+        "type": "3d_model",
+        "modelId": "dna_protein_complex",
+        "title": "Kompleks Heliks Ganda DNA & Faktor Transkripsi",
+        "instruction": "Inspeksi alur utama (major groove) DNA tempat residu berinteraksi secara elektrostatik."
+      }
+    },
+    "prompt": "Bagaimanakah mutasi penggantian asam amino bermuatan positif (Arginin) menjadi asam amino aromatik hidrofobik (Triptofan) ini mengganggu fungsi supresor tumor p53?",
+    "options": [
+      {
+        "id": "opt_a",
+        "label": "Menghilangkan ikatan elektrostatik langsung dengan tulang punggung fosfat pada alur minor DNA",
+        "isCorrect": true,
+        "misconceptionFeedback": "Tepat! Rantai samping Arginin 248 membentuk interaksi kontak langsung dengan molekul fosfat DNA target. Substitusi ke Trp merusak pengenalan target transkripsi p21/CDKN1A."
+      },
+      {
+        "id": "opt_b",
+        "label": "Menyebabkan denaturasi total domain tetramerisasi pada C-terminal",
+        "isCorrect": false,
+        "misconceptionFeedback": "Kodon 248 terletak pada Core DNA-Binding Domain (DBD), bukan pada Oligomerization Domain di C-terminal (residu 325-356)."
+      },
+      {
+        "id": "opt_c",
+        "label": "Memicu degradasi konstitutif oleh MDM2 secara berlebihan",
+        "isCorrect": false,
+        "misconceptionFeedback": "Mutan p53 kontak DNA justru sering kali terakumulasi dalam konsentrasi tinggi di inti sel karena hilangnya aktivasi umpan balik negatif terhadap transkripsi MDM2."
+      },
+      {
+        "id": "opt_d",
+        "label": "Mengubah struktur heliks ganda DNA target menjadi konfigurasi Z-DNA",
+        "isCorrect": false,
+        "misconceptionFeedback": "Protein p53 mutan tidak mengubah topologi B-DNA menjadi Z-DNA seluler, melainkan gagal berikatan dengan consensus sequence spesifik."
+      }
+    ],
+    "explanation": {
+      "coreConcept": "Mekanisme Molekuler Mutasi 'Contact Residue' pada Protein Supresor Tumor",
+      "stepByStepRationale": [
+        "Residu Arg248 adalah salah satu 'hotspot mutation' paling sering pada kanker manusia yang berperan sebagai 'contact residue'.",
+        "Gugus guanidinium bermuatan positif pada Arginin menyusup ke dalam alur minor DNA untuk berikatan hidrogen dengan oksigen tulang punggung fosfat.",
+        "Penggantian dengan Triptofan menghilangkan muatan positif dan menimbulkan halangan sterik cincin indol aromatik, melumpuhkan kemampuan transaktivasi gen penghambat siklus sel."
+      ],
+      "whyOthersAreWrong": {
+        "Denaturasi domain tetramerisasi": "Domain tetramerisasi berada jauh di C-terminal dan tidak terdampak mutasi DBD.",
+        "Degradasi MDM2": "Karena p53 mutan tak mampu menginduksi MDM2, kadar protein p53 mutan justru stabil dan menumpuk tinggi.",
+        "Konfigurasi Z-DNA": "Tidak ada korelasi mekanistis antara pengikatan DBD p53 dengan transisi B-Z DNA in vivo."
+      },
+      "referenceSource": "Vogelstein, B., Lane, D., & Levine, A. J. (2000). Surfacing the p53 network. Nature, 408(6810)."
+    }
+  }
+]
