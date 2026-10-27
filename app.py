@@ -15,13 +15,18 @@ def index():
     """Menampilkan halaman utama antarmuka pengguna (Web UI)."""
     return render_template('index.html')
 
-@app.route('/compress', methods=['POST'])
+@app.route('/compress', methods=['GET', 'POST'])
 def compress_files():
     """
     Menerima satu atau beberapa file dari form,
     mengompresnya menjadi arsip .zip di dalam memori,
     lalu mengirimkan berkas .zip langsung untuk diunduh.
     """
+    if request.method == 'GET':
+        return jsonify({
+            'success': False,
+            'message': 'Endpoint ini memerlukan metode POST dengan berkas yang diunggah.'
+        }), 400
     # 1. Validasi keberadaan file di request
     if 'files' not in request.files:
         return jsonify({
